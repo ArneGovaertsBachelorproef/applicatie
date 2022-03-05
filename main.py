@@ -10,4 +10,8 @@ templates = Jinja2Templates(directory='templates')
 
 @app.get('/')
 async def root(request: Request):
-    return templates.TemplateResponse('home.jinja', {'request': request})
+    return templates.TemplateResponse('landing.html', {'request': request})
+
+@app.get('/dashboard')
+async def dashboard(request: Request):
+    return templates.TemplateResponse('dashboard.html', {'request': request})

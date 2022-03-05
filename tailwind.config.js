@@ -1,5 +1,5 @@
 module.exports = {
-  content: ["./templates/*.jinja"],
+  content: ["./templates/*.html"],
   theme: {
     extend: {},
   },

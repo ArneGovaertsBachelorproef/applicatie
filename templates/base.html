@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="nl" class="h-full bg-gray-100">
+
+<head>
+  {% block head %}
+  <link rel="stylesheet" href="/static/style.css" />
+  <title>{% block title %}{% endblock %}</title>
+  {% endblock %}
+</head>
+
+<body class="h-full">
+  <div class="min-h-full">
+    {% block top_nav %}{% endblock %}
+    {% block header %}
+    <header class="bg-white shadow">
+      <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-gray-900">{% block header_title %}{% endblock %}</h1>
+      </div>
+    </header>
+    {% endblock %}
+    <main>
+      <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+          {% block main %}{% endblock %}
+        </div>
+      </div>
+    </main>
+    {% block footer %}{% endblock %}
+  </div>
+</body>
+
+</html>

@@ -43,10 +43,10 @@ async def login(
     
     if demo:
         resp = RedirectResponse('/dashboard', 303)
-        resp.set_cookie('_el_au', 'demo', max_age=86400, path='/', httponly=True)
+        resp.set_cookie('_el_au', 'demo', path='/', httponly=True)
         return resp
     elif verzonden:
-        return templates.TemplateResponse('auth/send.html', {'request': request, 'error': error})
+        return templates.TemplateResponse('auth/send.html', {'request': request})
     else:
         return templates.TemplateResponse('auth/login.html', {'request': request, 'error': error})
 

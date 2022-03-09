@@ -76,11 +76,14 @@ class Auth:
         try:
             with queries.Session(self.db_connection_uri) as session:
                 update = session.query("update users set last_token_verified_on = now() where last_token = %s and last_token_created_on + interval '%s min' > now() returning user_id", [token, minutes])
-                print(update)
+
                 if len(update) == 1:
+                    update = update.as_dict()
+
                     return {
                         'verified': True,
-                        'token': token
+                        'token': token,
+                        'user_id': update['user_id']
                     }
                 else:
                     return {

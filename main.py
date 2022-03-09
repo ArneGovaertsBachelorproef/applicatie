@@ -96,3 +96,23 @@ async def dashboard(request: Request, _el_au: Optional[str] = Cookie('')):
         return RedirectResponse('/aanmelden', 303)
     
     return templates.TemplateResponse('app/dashboard.html', {'request': request})
+
+@app.get('/opnames')
+async def opnames(request: Request, _el_au: Optional[str] = Cookie('')):
+    auth = Auth(request)
+    veri = auth.verify_token(_el_au)
+
+    if not veri['verified']:
+        return RedirectResponse('/aanmelden', 303)
+    
+    return templates.TemplateResponse('app/historiek.html', {'request': request})
+
+@app.get('/opnames/{id}')
+async def opname_detail(request: Request, _el_au: Optional[str] = Cookie('')):
+    auth = Auth(request)
+    veri = auth.verify_token(_el_au)
+
+    if not veri['verified']:
+        return RedirectResponse('/aanmelden', 303)
+    
+    return templates.TemplateResponse('app/detail.html', {'request': request})

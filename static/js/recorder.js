@@ -1,24 +1,24 @@
 const Recorder = () =>
     new Promise(async resolve => {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mediaRecorder = new MediaRecorder(stream);
-        const audioChunks = [];
+        const media_recorder = new MediaRecorder(stream);
+        const audio_chunks = [];
 
-        mediaRecorder.addEventListener("dataavailable", event => {
-            audioChunks.push(event.data);
+        media_recorder.addEventListener("dataavailable", event => {
+            audio_chunks.push(event.data);
         });
 
-        const start = () => mediaRecorder.start();
+        const start = () => media_recorder.start();
 
         const stop = () =>
             new Promise(resolve => {
-                mediaRecorder.addEventListener("stop", () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    resolve({ audioBlob, audioUrl });
+                media_recorder.addEventListener("stop", () => {
+                    const audio_blob = new Blob(audio_chunks, { type: 'audio/wav' });
+                    const audio_url = URL.createObjectURL(audio_blob);
+                    resolve({ audio_blob, audio_url });
                 });
 
-                mediaRecorder.stop();
+                media_recorder.stop();
             });
 
         resolve({ start, stop });

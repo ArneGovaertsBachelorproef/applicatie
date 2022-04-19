@@ -137,25 +137,11 @@ async def analyseer(
     }
 
 @app.get('/app/{hashid}')
-async def resultaat(request: Request, hashid: str, _el_au: Optional[str] = Cookie('')):
-    auth = Auth(request)
-    veri = auth.verify_token(_el_au)
-    
-    if not veri['verified']:
-        return RedirectResponse('/aanmelden', 303)
-    
+async def resultaat(request: Request, hashid: str):   
     analyse_id = Hashids(salt=opsys.getenv('HASHIDS_SALT')).decode(hashid)[0]
-    
     return templates.TemplateResponse('app/result.html', {'request': request})
 
 @app.get('/app/{hashid}/json')
-async def resultaat_json(request: Request, hashid: str, _el_au: Optional[str] = Cookie('')):
-    auth = Auth(request)
-    veri = auth.verify_token(_el_au)
-    
-    if not veri['verified']:
-        return RedirectResponse('/aanmelden', 303)
-    
+async def resultaat_json(request: Request, hashid: str):    
     analyse_id = Hashids(salt=opsys.getenv('HASHIDS_SALT')).decode(hashid)[0]
-
     return analyse_resultaat(analyse_id)

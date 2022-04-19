@@ -3,73 +3,61 @@
 {% block title %}Opnemen - ElderSpeaky{% endblock %}
 
 {% block main %}
-<article class="grid grid-cols-1 gap-4 py-1 px-4 sm:px-6 lg:px-8">
-  <div class="bg-white shadow sm:rounded-lg">
-    <div class="px-4 py-5 sm:px-6">
-      <h3 class="text-lg leading-6 font-medium text-gray-900">Laatste resultaat</h3>
-      <a href="#" class="mt-1 max-w-2xl text-sm text-gray-500 underline">Bekijk in detail</a>
+<article class="grid grid-cols-1 gap-4 py-1 px-4 sm:px-6 lg:px-8 print:py-0">
+  <div class="bg-white shadow sm:rounded-lg print:shadow-none print:rounded-none">
+    <div class="px-4 py-5 sm:px-6 print:hidden">
+      <h3 class="text-lg leading-6 font-medium text-gray-900">Resultaat</h3>
+      <a href="/app" class="mt-1 max-w-2xl text-sm text-gray-500 underline">Terug naar opnemen</a>
     </div>
-    <div class="border-t border-gray-200">
+    <div class="border-t border-gray-200 print:border-none">
       <dl>
         <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm text-gray-500 font-bold">Elderspeak</dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 font-semibold text-red-700">4 / 8</dd>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0 font-semibold text-red-700" id="elderspeak_score"></dd>
         </div>
         <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Opnameduur</dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0">00:04:55</dd>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0" id="opnameduur"></dd>
+        </div>
+        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Geslacht</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0" id="geslacht"></dd>
+        </div>
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
+          <dt class="text-sm font-medium text-gray-500">Leeftijd</dt>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0" id="leeftijd"></dd>
         </div>
         <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Langzaam spreken</dt>
-          <dd class="mt-1 sm:mt-0 flex justify-left items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </dd>
+          <dd class="mt-1 sm:mt-0 flex justify-left items-center" id="langzaam_spreken"></dd>
         </div>
         <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Verhoogd stemvolume</dt>
-          <dd class="mt-1 sm:mt-0 flex justify-left items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </dd>
+          <dd class="mt-1 sm:mt-0 flex justify-left items-center" id="verhoogd_stemvolume"></dd>
         </div>
         <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Verminderde grammaicale complexiteit</dt>
-          <dd class="mt-1 sm:mt-0 flex justify-left items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </dd>
+          <dd class="mt-1 sm:mt-0 flex justify-left items-center" id="verm_gram_complex"></dd>
         </div>
         <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Verkleinwoorden</dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0">77</dd>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0" id="aantal_verkleinwoorden"></dd>
         </div>
         <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Collectieve voornaamwoorden</dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0">400</dd>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0" id="aantal_collectieve_voornaamwoorden"></dd>
         </div>
         <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Bevestigende tussenwerpsels</dt>
-          <dd class="mt-1 text-sm text-gray-900 sm:mt-0">5</dd>
+          <dd class="mt-1 text-sm text-gray-900 sm:mt-0" id="aantal_bevestig_tussenwerpsels"></dd>
         </div>
         <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Verhoogde toonhoogte</dt>
-          <dd class="mt-1 sm:mt-0 flex justify-left items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </dd>
+          <dd class="mt-1 sm:mt-0 flex justify-left items-center" id="verhoogde_toonhoogte"></dd>
         </div>
-        <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
+        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6">
           <dt class="text-sm font-medium text-gray-500">Herhaling van zinnen</dt>
-          <dd class="mt-1 sm:mt-0 flex justify-left items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </dd>
+          <dd class="mt-1 sm:mt-0 flex justify-left items-center" id="herhaling"></dd>
         </div>
       </dl>
     </div>

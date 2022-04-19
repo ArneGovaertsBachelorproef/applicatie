@@ -6,6 +6,7 @@ export default {
     output: {
       file: './dist/js/bundle.js',
       format: 'es',
-      plugins: [nodent()/*, terser()*/]
-    }
+      plugins: [nodent(), terser()],
+    },
+    external: ['https://openfpcdn.io/fingerprintjs/v3.3.2/esm.min.js']
 };

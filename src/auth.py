@@ -27,23 +27,12 @@ class Auth:
     def send_token(self, email) -> bool:
         try:
             with queries.Session(self.db_connection_uri) as session:
-                # tabellen moet bestaan
-                results = session.query('''create table if not exists users (
-                    user_id                 int primary key generated always as identity,
-                    email                   varchar(254) not null unique,
-                    user_created_on         timestamp not null,
-                    last_token              text unique,
-                    last_token_created_on   timestamp,
-                    last_token_verified_on  timestamp
-                )
-                ''')
-
                 # als user, bestaat, genereer nieuwe token
-                new_token = session.query('update users set last_token = md5(now() || %s), last_token_created_on = now() where email = %s returning last_token', [email, email])
+                new_token = session.query('update gebruikers set laatste_token = md5(now() || %s), laatste_token_gemaakt_op = now() where email = %s returning laatste_token', [email, email])
 
                 if len(new_token) == 0:
                      # user bestaat niet, maak user en stuur verificatie
-                    new_token = session.query('insert into users (email, user_created_on, last_token, last_token_created_on) values(%s, now(), md5(now() || %s), now()) returning last_token', [email, email])
+                    new_token = session.query('insert into gebruikers (email, user_gemaakt_op, laatste_token, laatste_token_gemaakt_op) values(%s, now(), md5(now() || %s), now()) returning laatste_token', [email, email])
 
                 new_token = new_token.as_dict()
                 
@@ -51,7 +40,7 @@ class Auth:
                     self.email_metadata['email'],
                     self.email_metadata['subject'],
                     self.client_ip,
-                    'http://127.0.1:8000/verifieren/' + new_token['last_token']
+                    'http://127.0.1:8000/verifieren/' + new_token['laatste_token']
                 )
                 server = smtplib.SMTP(self.email_metadata["smtp_server"], self.email_metadata["port"])
                 server.ehlo()
@@ -66,16 +55,10 @@ class Auth:
             print(str(e))
             return False
 
-    def verify_token(self, token, minutes: int = 1440) -> object:
-        if token == 'demo':
-            return {
-                'verified': True,
-                'token': token
-            } 
-            
+    def verify_token(self, token, minutes: int = 1440) -> object:            
         try:
             with queries.Session(self.db_connection_uri) as session:
-                update = session.query("update users set last_token_verified_on = now() where last_token = %s and last_token_created_on + interval '%s min' > now() returning user_id", [token, minutes])
+                update = session.query("update gebruikers set laaste_token_geverifeerd_op = now() where laatste_token = %s and laatste_token_gemaakt_op + interval '%s min' > now() returning gebruiker_id", [token, minutes])
 
                 if len(update) == 1:
                     update = update.as_dict()
@@ -83,7 +66,7 @@ class Auth:
                     return {
                         'verified': True,
                         'token': token,
-                        'user_id': update['user_id']
+                        'gebruiker_id': update['gebruiker_id']
                     }
                 else:
                     return {

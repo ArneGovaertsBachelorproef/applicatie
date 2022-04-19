@@ -1,14 +1,20 @@
+import os as opsys, queries
+
 from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
 
 from src.auth import Auth
-
-from fastapi import FastAPI, Request, Cookie
-from fastapi.responses import HTMLResponse, RedirectResponse
+from hashids import Hashids
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import FastAPI, Request, Cookie, Response, status, File, Form, UploadFile
+from src.analyseer import opslaan_audio_bestand, insert_gegevens_in_db, analyse, analyse_resultaat
+
+from huey import RedisHuey
+huey = RedisHuey(url='redis://localhost:6379')
 
 app = FastAPI()
 
@@ -23,12 +29,11 @@ async def root(request: Request):
     return templates.TemplateResponse('landing.html', {'request': request})
 
 # ----------------------------------------------------------------------------- #
-# Passwordless inloggen                                                         #
+# Passwordless inloggen en uitloggen                                            #
 # ----------------------------------------------------------------------------- #
 @app.get('/aanmelden')
 async def login(
         request: Request,
-        demo: Optional[bool] = False,
         verzonden: Optional[bool] = False,
         error: Optional[bool] = False,
         _el_au: Optional[str] = Cookie('')
@@ -39,13 +44,9 @@ async def login(
     if _el_au != '':
         veri = auth.verify_token(_el_au)
         if veri['verified']:
-            return RedirectResponse('/dashboard', 303)
+            return RedirectResponse('/app', 303)
     
-    if demo:
-        resp = RedirectResponse('/dashboard', 303)
-        resp.set_cookie('_el_au', 'demo', path='/', httponly=True)
-        return resp
-    elif verzonden:
+    if verzonden:
         return templates.TemplateResponse('auth/send.html', {'request': request})
     else:
         return templates.TemplateResponse('auth/login.html', {'request': request, 'error': error})
@@ -65,15 +66,12 @@ async def verifieren(request: Request, token: str):
     veri = auth.verify_token(token, 10)
 
     if veri['verified']:
-        resp = RedirectResponse('/dashboard', 303)
+        resp = RedirectResponse('/app', 303)
         resp.set_cookie('_el_au', veri['token'], max_age=86400, path='/', httponly=True)
         return resp
     else:
         return RedirectResponse('/aanmelden', 303)
 
-# ----------------------------------------------------------------------------- #
-# Dashboard                                                                     #
-# ----------------------------------------------------------------------------- #
 @app.get('/uitloggen')
 async def uitloggen(request: Request, _el_au: Optional[str] = Cookie('')):
     auth = Auth(request)
@@ -85,34 +83,79 @@ async def uitloggen(request: Request, _el_au: Optional[str] = Cookie('')):
     return resp
 
 # ----------------------------------------------------------------------------- #
-# Dashboard                                                                     #
+# App                                                                      #
 # ----------------------------------------------------------------------------- #
-@app.get('/dashboard')
-async def dashboard(request: Request, _el_au: Optional[str] = Cookie('')):
+@app.get('/app')
+async def opnemen(request: Request, response: Response, _el_au: Optional[str] = Cookie('')):
+    auth = Auth(request)
+    veri = auth.verify_token(_el_au)
+    
+    if not veri['verified']:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return RedirectResponse('/aanmelden', 303)
+    
+    return templates.TemplateResponse('app/record.html', {'request': request})
+
+@app.post('/app', status_code = 201)
+async def analyseer(
+        request: Request,
+        response: Response,
+        opname: UploadFile,
+        _el_au: Optional[str] = Cookie(''),
+        browser: str = Form(''),
+        os: str = Form(''),
+        platform: str = Form(''),
+        bezoeker_id: str = Form(''),
+        geslacht: str = Form('X'),
+        leeftijd: int = Form(0)
+    ):
+    auth = Auth(request)
+    veri = auth.verify_token(_el_au)
+
+    if not veri['verified']:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return {
+            'success': False,
+            'error': 'not verified' 
+        }
+
+    opslaan_bestand = await opslaan_audio_bestand(opname)
+    if not opslaan_bestand['success']:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return opslaan_bestand
+
+    insert = insert_gegevens_in_db(gebruiker_id=veri['gebruiker_id'], opname_bestandsnaam=opslaan_bestand['bestands_naam'], browser=browser, operating_system=os, platform=platform, bezoeker_id=bezoeker_id, geslacht=geslacht, leeftijd=leeftijd)
+    if not insert['success']:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return insert
+    
+    analyse(analyse_id=insert['analyse_id'], opname_bestand=opslaan_bestand['bestands_naam'])
+
+    return {
+        'success': True,
+        'redirect_url': '/app/' + Hashids(salt=opsys.getenv('HASHIDS_SALT')).encode(insert['analyse_id'])
+    }
+
+@app.get('/app/{hashid}')
+async def resultaat(request: Request, hashid: str, _el_au: Optional[str] = Cookie('')):
     auth = Auth(request)
     veri = auth.verify_token(_el_au)
     
     if not veri['verified']:
         return RedirectResponse('/aanmelden', 303)
     
-    return templates.TemplateResponse('app/dashboard.html', {'request': request})
+    analyse_id = Hashids(salt=opsys.getenv('HASHIDS_SALT')).decode(hashid)[0]
+    
+    return templates.TemplateResponse('app/result.html', {'request': request})
 
-@app.get('/opnames')
-async def opnames(request: Request, _el_au: Optional[str] = Cookie('')):
+@app.get('/app/{hashid}/json')
+async def resultaat_json(request: Request, hashid: str, _el_au: Optional[str] = Cookie('')):
     auth = Auth(request)
     veri = auth.verify_token(_el_au)
-
+    
     if not veri['verified']:
         return RedirectResponse('/aanmelden', 303)
     
-    return templates.TemplateResponse('app/historiek.html', {'request': request})
+    analyse_id = Hashids(salt=opsys.getenv('HASHIDS_SALT')).decode(hashid)[0]
 
-@app.get('/opnames/{id}')
-async def opname_detail(request: Request, _el_au: Optional[str] = Cookie('')):
-    auth = Auth(request)
-    veri = auth.verify_token(_el_au)
-
-    if not veri['verified']:
-        return RedirectResponse('/aanmelden', 303)
-    
-    return templates.TemplateResponse('app/detail.html', {'request': request})
+    return analyse_resultaat(analyse_id)

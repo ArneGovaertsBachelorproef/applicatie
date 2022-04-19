@@ -13,7 +13,7 @@ const Recorder = () =>
         const stop = () =>
             new Promise(resolve => {
                 media_recorder.addEventListener("stop", () => {
-                    const audio_blob = new Blob(audio_chunks, { type: 'audio/wav' });
+                    const audio_blob = new Blob(audio_chunks, { type: 'audio/flac' });
                     const audio_url = URL.createObjectURL(audio_blob);
                     resolve({ audio_blob, audio_url });
                 });

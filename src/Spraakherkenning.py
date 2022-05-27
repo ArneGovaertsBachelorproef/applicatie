@@ -1,7 +1,6 @@
-import os, io, sys, json, wave, subprocess
+import io, sys, os, json, sqlite3, subprocess
 
 from enum import Enum
-from pathlib import Path
 from google.cloud import speech
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
@@ -18,27 +17,40 @@ class Spraakherkenning:
         """ constructor
         :param audio_file_path: bestandsnaam als string
         """
+        print('init Spraakherkenning')
         self.__audio_file_path    = audio_file_path
     
     def tekst(self) -> tuple:
-        # try: 
-        #    return {
-        #        'transcriptie': self.__google_cloud(),
-        #        'methode': 'Google Clooud'
-        #    }
-        # except Exception as e:
-        return (self.__vosk(), 'VOSK')
+        """ omzetten van spraak naar tekst
+        :param: methode
+        :return str: transcriptie
+        """
+                
+        try:
+            return (self.__google_cloud(dialect_opvangen=False), 'GOOGLE_ENKEL_NL_BE')
+        except Exception as e:
+            return (self.__vosk(small=True), 'VOSK_SMALL')
 
-    def __google_cloud(self) -> str:
+    def __google_cloud(self, dialect_opvangen: bool) -> str:
         client = speech.SpeechClient()
 
         with io.open(self.__audio_file_path, 'rb') as speech_file:
             content = speech_file.read()
 
         audio = speech.RecognitionAudio(content=content)
-        config = speech.RecognitionConfig(
-            language_code='nl-BE'
-        )
+
+        if dialect_opvangen:
+            # nl-BE als hoofdtaal, nl-NL, fr-BE en fr-FR om dialect op te vangen
+            config = speech.RecognitionConfig(
+                language_code='nl-BE',
+                alternative_language_codes=['nl-NL', 'fr-BE', 'fr-FR'] # dialect hiermee opgelost?
+            )
+        else:
+            # uitsluitend nl-BE
+            config = speech.RecognitionConfig(
+                language_code='nl-BE'
+            )
+
         response = client.recognize(config=config, audio=audio)
 
         transcript = ''
@@ -47,18 +59,17 @@ class Spraakherkenning:
 
         return transcript
 
-    def __vosk(self) -> str:        
-        oud_pad     = Path(self.__audio_file_path)
-        nieuw_pad   = oud_pad.with_suffix('.wav')
-        os.system('ffmpeg -y -v info -i ' + str(oud_pad.absolute()) + ' ' + str(nieuw_pad.absolute()))
-
+    def __vosk(self, small=True) -> str:
         SetLogLevel(0)
 
         sample_rate = 16000
-        model       = Model('vosk-model-nl-spraakherkenning-0.6')
+        if small:
+            model   = Model(os.path.dirname(os.path.realpath(__file__)) + '/models/vosk/small')
+        else:
+            model   = Model(os.path.dirname(os.path.realpath(__file__)) + '/models/vosk/big')
         rec         = KaldiRecognizer(model, sample_rate)
 
-        process = subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', str(nieuw_pad.absolute()), '-ar', str(sample_rate) ,
+        process = subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', self.__audio_file_path, '-ar', str(sample_rate) ,
             '-ac', '1', '-f', 's16le', '-'], stdout=subprocess.PIPE)
 
         res = []

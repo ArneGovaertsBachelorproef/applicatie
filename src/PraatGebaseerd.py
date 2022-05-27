@@ -1,7 +1,5 @@
-import math, parselmouth, subprocess
+import math, parselmouth, datetime
 
-from os import system
-from pathlib import Path
 from parselmouth.praat import call
 
 class PraatGebaseerd:
@@ -19,14 +17,14 @@ class PraatGebaseerd:
         """ constructor
         :param audio_file_path: bestandsnaam als string
         """
-        oud_pad = Path(audio_file_path)
-        nieuw_pad = oud_pad.with_suffix('.wav')
-        # system('ffmpeg -y -v info -i ' + str(oud_pad.absolute()) + ' ' + str(nieuw_pad.absolute()))
-        process = subprocess.Popen([
-            'ffmpeg', '-loglevel', 'quiet', '-y', '-i', str(oud_pad.absolute()), str(nieuw_pad.absolute())
-        ], stdout=subprocess.PIPE)
-        self.__audio_file_path = str(nieuw_pad.absolute())
+        print('inti PRAAT')
+        self.__audio_file_path = audio_file_path
     
+    def opnameduur(self) -> str:
+        sound = parselmouth.Sound(self.__audio_file_path)
+        dur = sound.get_total_duration()
+        return str(datetime.timedelta(seconds=dur))
+
     def geluidsniveau_in_db(self) -> float:             # intensity 
         """ opvragen van het geluidsniveau uitgedrukt in decibel
         :return float: geluidsniveau

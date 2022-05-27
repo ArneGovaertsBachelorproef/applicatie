@@ -101,19 +101,18 @@ import { Recorder } from "./recorder.js";
             let recieved_and_set;
             const viewables                 = {
                 opnameduur:             document.getElementById('opnameduur'),
-                geslacht:               document.getElementById('geslacht'),
-                leeftijd:               document.getElementById('leeftijd'),
+                elderspeak_score:       document.getElementById('elderspeak_score'),
                 langzaam_spreken:       document.getElementById('langzaam_spreken'),
                 verhoogd_stemvolume:    document.getElementById('verhoogd_stemvolume'),
+                verhoogde_toonhoogte:   document.getElementById('verhoogde_toonhoogte'),
                 verm_gram_complex:      document.getElementById('verm_gram_complex'),
                 aantal_verkleinwoorden: document.getElementById('aantal_verkleinwoorden'),
                 aantal_collectieve_voornaamwoorden: document.getElementById('aantal_collectieve_voornaamwoorden'),
                 aantal_bevestig_tussenwerpsels: document.getElementById('aantal_bevestig_tussenwerpsels'),
-                verhoogde_toonhoogte:   document.getElementById('verhoogde_toonhoogte'),
-                herhaling:              document.getElementById('herhaling'),
+                aantal_herhalingen:     document.getElementById('aantal_herhalingen'),
             };
             //const viewables_length = Object.entries(viewables).length;
-            const viewables_length = 4;
+            const viewables_length = 2;
             
             const poll_server = () => {
                 console.log('polling...');
@@ -123,13 +122,53 @@ import { Recorder } from "./recorder.js";
                 fetch(window.location.pathname + '/json')
                 .then(r => r.json())
                 .then(r => {
-                    if (r[0].geslacht != null) {
-                        viewables.geslacht.innerText = r[0].geslacht;
+                    if (r[0].opnameduur != null) {
+                        viewables.opnameduur.innerText = r[0].opnameduur;
                         recieved_and_set++;
                     }
 
-                    if (r[0].leeftijd != null) {
-                        viewables.leeftijd.innerText = r[0].leeftijd;
+                    if (r[0].textcat_elderspeak != null) {
+                        if (r[0].textcat_elderspeak > 0.5) {
+                            viewables.elderspeak_score.innerText = ko_sign;
+                        } else {
+                            viewables.elderspeak_score.innerText = ok_sign;
+                        }
+                        recieved_and_set++;
+                    }
+
+                    if (r[0].spraaksnelheid != null) {
+                        if (r[0].spraaksnelheid < 4) {
+                            viewables.langzaam_spreken.innerText = ko_sign;
+                        } else {
+                            viewables.langzaam_spreken.innerText = ok_sign;
+                        }
+                        recieved_and_set++;
+                    }
+
+                    if (r[0].geluidniveau != null) {
+                        if (r[0].geluidniveau > 80) {
+                            viewables.verhoogd_stemvolume.innerText = ko_sign;
+                        } else {
+                            viewables.verhoogd_stemvolume.innerText = ok_sign;
+                        }
+                        recieved_and_set++;
+                    }
+
+                    if (r[0].toonhoogte != null) {
+                        if (r[0].toonhoogte > 100) {
+                            viewables.verhoogde_toonhoogte.innerText = ko_sign;
+                        } else {
+                            viewables.verhoogde_toonhoogte.innerText = ok_sign;
+                        }
+                        recieved_and_set++;
+                    }
+
+                    if (r[0].woordlengteratio != null) {
+                        if (r[0].woordlengteratio < 0.05) {
+                            viewables.verm_gram_complex.innerText = ko_sign;
+                        } else {
+                            viewables.verm_gram_complex.innerText = ok_sign;
+                        }
                         recieved_and_set++;
                     }
 
@@ -142,12 +181,23 @@ import { Recorder } from "./recorder.js";
                         viewables.aantal_bevestig_tussenwerpsels.innerText = r[0].aantal_bevestigende_tussenwerpsels;
                         recieved_and_set++;
                     }
+
+                    if (r[0].aantal_verkleinwoorden != null) {
+                        viewables.aantal_verkleinwoorden.innerText = r[0].aantal_verkleinwoorden;
+                        recieved_and_set++;
+                    }
+
+                    if (r[0].aantal_herhalingen != null) {
+                        viewables.aantal_herhalingen.innerText = r[0].aantal_herhalingen;
+                        recieved_and_set++;
+                    }
                     
                     console.log('Recieved: ' + recieved_and_set);
+                    console.log(r)
 
-                    if (recieved_and_set < viewables_length) {
+                    /*if (recieved_and_set < viewables_length) {
                         setTimeout(poll_server, 2000);
-                    }
+                    }*/
                 })
                 .catch((reason) => {
                     alert('Er liep iets mis. Fout = ' + reason);

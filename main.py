@@ -105,9 +105,7 @@ async def analyseer(
         browser: str = Form(''),
         os: str = Form(''),
         platform: str = Form(''),
-        bezoeker_id: str = Form(''),
-        geslacht: str = Form('X'),
-        leeftijd: int = Form(0)
+        bezoeker_id: str = Form('')
     ):
     auth = Auth(request)
     veri = auth.verify_token(_el_au)
@@ -116,7 +114,8 @@ async def analyseer(
         response.status_code = status.HTTP_403_FORBIDDEN
         return {
             'success': False,
-            'error': 'not verified' 
+            'error': 'not verified',
+            'step': 'verify'
         }
 
     opslaan_bestand = await opslaan_audio_bestand(opname)
@@ -124,7 +123,7 @@ async def analyseer(
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return opslaan_bestand
 
-    insert = insert_gegevens_in_db(gebruiker_id=veri['gebruiker_id'], opname_bestandsnaam=opslaan_bestand['bestands_naam'], browser=browser, operating_system=os, platform=platform, bezoeker_id=bezoeker_id, geslacht=geslacht, leeftijd=leeftijd)
+    insert = insert_gegevens_in_db(gebruiker_id=veri['gebruiker_id'], opname_bestandsnaam=opslaan_bestand['bestands_naam'], browser=browser, operating_system=os, platform=platform, bezoeker_id=bezoeker_id)
     if not insert['success']:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return insert

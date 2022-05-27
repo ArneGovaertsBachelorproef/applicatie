@@ -135,3 +135,5 @@ node_modules
 uploads
 bamboo-name-341317-87e826320871.json
 vosk-model-*
+spacy_models
+src/models

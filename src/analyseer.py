@@ -148,8 +148,8 @@ def analyse_resultaat(analyse_id: int):
     )
 
     with queries.Session(db_connection_uri) as session:
-        resultaat = session.query('''select analyse_id, is_gestart, is_succes, error, analyse_gemaakt_op
-            spraaksnelheid, geluidniveau, toonhoogte, cilt, woordlengteratio, aantal_verkleinwoorden,
+        resultaat = session.query('''select analyse_id, is_gestart, is_succes, error, analyse_gemaakt_op,
+            opnameduur, spraaksnelheid, geluidniveau, toonhoogte, cilt, woordlengteratio, aantal_verkleinwoorden,
             aantal_collectieve_voornaamwoorden, aantal_bevestigende_tussenwerpsels, aantal_herhalingen, textcat_elderspeak
         from analyses
         where analyse_id = %s''', [analyse_id])

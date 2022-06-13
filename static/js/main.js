@@ -100,6 +100,7 @@ import { Recorder } from "./recorder.js";
 
             let recieved_and_set;
             const viewables                 = {
+                elderspeak:             document.getElementById('elderspeak'),
                 opnameduur:             document.getElementById('opnameduur'),
                 elderspeak_score:       document.getElementById('elderspeak_score'),
                 langzaam_spreken:       document.getElementById('langzaam_spreken'),
@@ -111,13 +112,13 @@ import { Recorder } from "./recorder.js";
                 aantal_bevestig_tussenwerpsels: document.getElementById('aantal_bevestig_tussenwerpsels'),
                 aantal_herhalingen:     document.getElementById('aantal_herhalingen'),
             };
-            //const viewables_length = Object.entries(viewables).length;
-            const viewables_length = 2;
+            const viewables_length = Object.entries(viewables).length;
             
             const poll_server = () => {
                 console.log('polling...');
 
                 recieved_and_set = 0;
+                elderspeak       = 0;
 
                 fetch(window.location.pathname + '/json')
                 .then(r => r.json())
@@ -129,45 +130,50 @@ import { Recorder } from "./recorder.js";
 
                     if (r[0].textcat_elderspeak != null) {
                         if (r[0].textcat_elderspeak > 0.5) {
-                            viewables.elderspeak_score.innerText = ko_sign;
+                            viewables.elderspeak_score.innerHTML = ko_sign;
+                            elderspeak++;
                         } else {
-                            viewables.elderspeak_score.innerText = ok_sign;
+                            viewables.elderspeak_score.innerHTML = ok_sign;
                         }
                         recieved_and_set++;
                     }
 
                     if (r[0].spraaksnelheid != null) {
-                        if (r[0].spraaksnelheid < 4) {
-                            viewables.langzaam_spreken.innerText = ko_sign;
+                        if (r[0].spraaksnelheid < 3) {
+                            viewables.langzaam_spreken.innerHTML = ko_sign;
+                            elderspeak++;
                         } else {
-                            viewables.langzaam_spreken.innerText = ok_sign;
+                            viewables.langzaam_spreken.innerHTML = ok_sign;
                         }
                         recieved_and_set++;
                     }
 
                     if (r[0].geluidniveau != null) {
                         if (r[0].geluidniveau > 80) {
-                            viewables.verhoogd_stemvolume.innerText = ko_sign;
+                            viewables.verhoogd_stemvolume.innerHTML = ko_sign;
+                            elderspeak++;
                         } else {
-                            viewables.verhoogd_stemvolume.innerText = ok_sign;
+                            viewables.verhoogd_stemvolume.innerHTML = ok_sign;
                         }
                         recieved_and_set++;
                     }
 
                     if (r[0].toonhoogte != null) {
                         if (r[0].toonhoogte > 100) {
-                            viewables.verhoogde_toonhoogte.innerText = ko_sign;
+                            viewables.verhoogde_toonhoogte.innerHTML = ko_sign;
+                            elderspeak++;
                         } else {
-                            viewables.verhoogde_toonhoogte.innerText = ok_sign;
+                            viewables.verhoogde_toonhoogte.innerHTML = ok_sign;
                         }
                         recieved_and_set++;
                     }
 
                     if (r[0].woordlengteratio != null) {
                         if (r[0].woordlengteratio < 0.05) {
-                            viewables.verm_gram_complex.innerText = ko_sign;
+                            viewables.verm_gram_complex.innerHTML = ko_sign;
+                            elderspeak++;
                         } else {
-                            viewables.verm_gram_complex.innerText = ok_sign;
+                            viewables.verm_gram_complex.innerHTML = ok_sign;
                         }
                         recieved_and_set++;
                     }
@@ -195,9 +201,17 @@ import { Recorder } from "./recorder.js";
                     console.log('Recieved: ' + recieved_and_set);
                     console.log(r)
 
-                    /*if (recieved_and_set < viewables_length) {
+                    if (recieved_and_set < viewables_length - 1) {
                         setTimeout(poll_server, 2000);
-                    }*/
+                    } else {
+                        document.getElementById('wordt_geladen').remove();
+
+                        if (elderspeak >= 3) {
+                            viewables.elderspeak.innerHTML = ko_sign;
+                        } else {
+                            viewables.elderspeak.innerHTML = ok_sign;
+                        }
+                    }
                 })
                 .catch((reason) => {
                     alert('Er liep iets mis. Fout = ' + reason);

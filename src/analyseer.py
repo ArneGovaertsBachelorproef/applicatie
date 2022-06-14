@@ -88,9 +88,12 @@ def analyse(analyse_id: int, opname_bestand: str):
     oud_pad     = Path(opname_bestand)
     nieuw_pad   = oud_pad.with_suffix('.wav')
     process = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'quiet', '-i', str(oud_pad.absolute()), str(nieuw_pad.absolute())], stdout=subprocess.PIPE)
+    process.wait()
+    
     opname_bestand = str(nieuw_pad.absolute())
     print('omgezet naar WAV: ' + opname_bestand)
 
+    # analyseer
     praat = PraatGebaseerd(opname_bestand)
     transcriptie, methode = Spraakherkenning(opname_bestand).tekst()
     tekst_analyse = TekstGebaseerd(transcript=transcriptie, db_connection_uri=db_connection_uri)

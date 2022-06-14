@@ -17,7 +17,7 @@ class PraatGebaseerd:
         """ constructor
         :param audio_file_path: bestandsnaam als string
         """
-        print('inti PRAAT')
+        print('init PRAAT')
         self.__audio_file_path = audio_file_path
     
     def opnameduur(self) -> str:

@@ -1,6 +1,6 @@
 import io, sys, os, json, sqlite3, subprocess
 
-from enum import Enum
+from pathlib import Path
 from google.cloud import speech
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
@@ -27,46 +27,48 @@ class Spraakherkenning:
         """
                 
         try:
-            return (self.__google_cloud(dialect_opvangen=False), 'GOOGLE_ENKEL_NL_BE')
+            return (self.__google_cloud(), 'GOOGLE_ENKEL_NL_BE')
         except Exception as e:
-            return (self.__vosk(small=True), 'VOSK_SMALL')
+            print(str(e))
+            return (self.__vosk(), 'VOSK_SMALL')
 
-    def __google_cloud(self, dialect_opvangen: bool) -> str:
+    def __google_cloud(self) -> str:
         client = speech.SpeechClient()
 
-        with io.open(self.__audio_file_path, 'rb') as speech_file:
+        #wav_bestand  = Path(self.__audio_file_path)
+        #flac_bestand = wav_bestand.with_suffix('.flac')
+
+        with io.open(str(self.__audio_file_path), 'rb') as speech_file:
             content = speech_file.read()
 
         audio = speech.RecognitionAudio(content=content)
 
-        if dialect_opvangen:
-            # nl-BE als hoofdtaal, nl-NL, fr-BE en fr-FR om dialect op te vangen
-            config = speech.RecognitionConfig(
-                language_code='nl-BE',
-                alternative_language_codes=['nl-NL', 'fr-BE', 'fr-FR'] # dialect hiermee opgelost?
-            )
-        else:
-            # uitsluitend nl-BE
-            config = speech.RecognitionConfig(
-                language_code='nl-BE'
-            )
+        # config = speech.RecognitionConfig(
+        #     language_code='nl-BE',
+        #     encoding='FLAC',
+        #     sample_rate_hertz=16000
+        # )
+
+        config = speech.RecognitionConfig(
+            language_code='nl-BE',
+            audio_channel_count=2,
+            enable_separate_recognition_per_channel=False,
+        )
 
         response = client.recognize(config=config, audio=audio)
+        results = response.results
 
         transcript = ''
-        for result in response.results:
+        for result in results:
             transcript = transcript + str(result.alternatives[0].transcript)
 
         return transcript
 
-    def __vosk(self, small=True) -> str:
+    def __vosk(self) -> str:
         SetLogLevel(0)
 
         sample_rate = 16000
-        if small:
-            model   = Model(os.path.dirname(os.path.realpath(__file__)) + '/models/vosk/small')
-        else:
-            model   = Model(os.path.dirname(os.path.realpath(__file__)) + '/models/vosk/big')
+        model       = Model(os.path.dirname(os.path.realpath(__file__)) + '/models/vosk/small')
         rec         = KaldiRecognizer(model, sample_rate)
 
         process = subprocess.Popen(['ffmpeg', '-loglevel', 'quiet', '-i', self.__audio_file_path, '-ar', str(sample_rate) ,
